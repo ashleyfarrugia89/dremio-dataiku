@@ -38,6 +38,8 @@ This Plugin requires 4 input parameters, these must be input in the Plugin form.
 2. Dremio Username - A user who has access to your Dremio datasets
 3. Dremio Password - The password associated with the user
 4. SQL Query - An SQL query that you want to perform against Dremio.
+5. VDS Path - The path where you want the VDS to exist within Dremio.
+6. PDS Path - The PDS path for the datasource where Dataiku will output the resulting dataset.
 
 
 Finally, run the Plugin recipe and browse the output Dataset. You should see the result of your query.

@@ -18,31 +18,45 @@ from pyarrow import flight
 import pyarrow as pa
 
 OUTPUT = get_output_names_for_role("output_dataset")[0]
-
 DREMIO_HOST =  get_recipe_config().get("dremio_host")
 USER = get_recipe_config().get("dremio_user")
 PASSWD = get_recipe_config().get("dremio_passwd")
-query = get_recipe_config().get("sql_query")
+dremio_query = get_recipe_config().get("sql_query")
+pds_path = get_recipe_config().get("pds_path")
+vds = get_recipe_config().get("dremio_vds")
 
-def flight_query(host, username, password, query):
-    client = flight.FlightClient('grpc+tcp://{0}:32010'.format(host))
-    bearer_token = client.authenticate_basic_token(username, password)
-    options = flight.FlightCallOptions(headers=[bearer_token])
-    info = client.get_flight_info(flight.FlightDescriptor.for_command(query + '-- arrow flight'), options)
-    reader = client.do_get(info.endpoints[0].ticket, options)
+CREATE_VDS_SQL = "CREATE VDS {0} as select * from {1}.{2}"
 
-    batches = []
-    while True:
-        try:
-            batch, metadata = reader.read_chunk()
-            batches.append(batch)
-        except StopIteration:
-            break
-    data = pa.Table.from_batches(batches)
-    df = data.to_pandas()
-    return df
+def connect(host, username, passwd):
+    try:
+        client = flight.FlightClient('grpc+tcp://{0}:32010'.format(host))
+        bearer_token = client.authenticate_basic_token(username, passwd)
+        options = flight.FlightCallOptions(headers=[bearer_token])
+    except Exception as e:
+        print("Error connecting to server: {0} - {1}".format(host, e))
+        return False
+    else:
+        return [client, options]
 
-df = flight_query(DREMIO_HOST, USER, PASSWD, query)
+def query(client, options, sql):
+    ret = None
+    try:
+        info = client.get_flight_info(flight.FlightDescriptor.for_command(sql + '-- arrow flight'), options)
+        reader = client.do_get(info.endpoints[0].ticket, options)
+        df = reader.read_pandas()
+        return df
+    except Exception as e:
+        print("Error submitting query to host: ", e)
+        ret = False
+        return ret
+    else:
+        return ret
 
+client, options = connect(DREMIO_HOST, USER, PASSWD)
+# get data from Dremio
+df = query(client, options, dremio_query)
 tbl = dataiku.Dataset(OUTPUT)
 tbl.write_with_schema(df)
+# create view/vds on the data inside Dremio
+vds_query = CREATE_VDS_SQL.format(vds, pds_path, OUTPUT)
+query(client, options, vds_query)

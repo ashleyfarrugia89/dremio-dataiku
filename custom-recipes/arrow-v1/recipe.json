@@ -58,6 +58,20 @@
             "type": "STRING",
             "description": "SQL query to run in Dremio",
             "mandatory": true
+        },
+        {
+            "name": "dremio_vds",
+            "label": "Virtual Data Set",
+            "type": "STRING",
+            "description": "Name of the Virtual Dataset inside Dremio",
+            "mandatory": true
+        },
+        {
+            "name": "pds_path",
+            "label": "PDS Path",
+            "type": "STRING",
+            "description": "Path of where the VDS will be located inside Dremio excluding the VDS name",
+            "mandatory": true
         }
     ]
 }
