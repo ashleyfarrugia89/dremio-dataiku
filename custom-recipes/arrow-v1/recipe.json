@@ -70,7 +70,7 @@
             "name": "pds_path",
             "label": "PDS Path",
             "type": "STRING",
-            "description": "Path of where the VDS will be located inside Dremio excluding the VDS name",
+            "description": "The PDS path for the datasource where Dataiku will output the resulting dataset",
             "mandatory": true
         }
     ]
