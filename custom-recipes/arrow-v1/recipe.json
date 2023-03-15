@@ -63,7 +63,7 @@
             "name": "dremio_vds",
             "label": "Virtual Data Set",
             "type": "STRING",
-            "description": "Name of the Virtual Dataset inside Dremio",
+            "description": "The path where you want the VDS to exist within Dremio",
             "mandatory": true
         },
         {
